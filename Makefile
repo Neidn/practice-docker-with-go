@@ -22,4 +22,7 @@ test:
 server:
 	go run main.go
 
-.PHONY: migratedown migratedown1 migrateup migrateup1 sqlc test server
+mock:
+	mockgen -package mockdb -destination db/mock/store.go practice-docker/db/sqlc Store
+
+.PHONY: migratedown migratedown1 migrateup migrateup1 sqlc test server mock

@@ -17,7 +17,19 @@ func NewServer(store *db.Store) *Server {
 
 	// Set up the routing of the server.
 	router.POST("/accounts", server.createAccount)
+	router.GET("/accounts/:id", server.getAccount)
+	router.GET("/accounts", server.listAccounts)
 
 	server.router = router
 	return server
+}
+
+// Start runs the HTTP server on a specific address.
+func (server *Server) Start(address string) error {
+	return server.router.Run(address)
+}
+
+// errorResponse is a helper function to convert an error to a JSON response.
+func errorResponse(err error) gin.H {
+	return gin.H{"error": err.Error()}
 }

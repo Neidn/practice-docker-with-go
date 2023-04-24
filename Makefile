@@ -1,4 +1,5 @@
-POSTGRES_URL=postgresql://root@localhost:5432/simple_bank?sslmode=disable&password=secret
+#POSTGRES_URL=postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable
+POSTGRES_URL=postgresql://root:secret@neidn.com:5432/simple_bank?sslmode=disable
 
 migrateup:
 	migrate -path db/migration -database "$(POSTGRES_URL)" -verbose up
@@ -15,4 +16,10 @@ migratedown1:
 sqlc:
 	sqlc generate
 
-.PHONY: migratedown migratedown1 migrateup migrateup1 sqlc
+test:
+	go test -v ./...
+
+server:
+	go run main.go
+
+.PHONY: migratedown migratedown1 migrateup migrateup1 sqlc test server

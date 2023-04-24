@@ -1,5 +1,6 @@
 package api
 
+<<<<<<< HEAD
 import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
@@ -107,4 +108,15 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 
 	// Return the account to the user.
 	ctx.JSON(http.StatusOK, accounts)
+=======
+import "github.com/gin-gonic/gin"
+
+type createAccountRequest struct {
+	Owner    string `json:"owner" binding:"required"`
+	Currency string `json:"currency" binding:"required"`
+}
+
+func (server *Server) createAccount(ctx *gin.Context) {
+
+>>>>>>> origin/main
 }

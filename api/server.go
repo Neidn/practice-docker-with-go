@@ -17,12 +17,16 @@ func NewServer(store *db.Store) *Server {
 
 	// Set up the routing of the server.
 	router.POST("/accounts", server.createAccount)
+<<<<<<< HEAD
 	router.GET("/accounts/:id", server.getAccount)
 	router.GET("/accounts", server.listAccounts)
+=======
+>>>>>>> origin/main
 
 	server.router = router
 	return server
 }
+<<<<<<< HEAD
 
 // Start runs the HTTP server on a specific address.
 func (server *Server) Start(address string) error {
@@ -33,3 +37,5 @@ func (server *Server) Start(address string) error {
 func errorResponse(err error) gin.H {
 	return gin.H{"error": err.Error()}
 }
+=======
+>>>>>>> origin/main

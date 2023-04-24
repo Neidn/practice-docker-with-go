@@ -1,6 +1,5 @@
 package api
 
-<<<<<<< HEAD
 import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
@@ -10,7 +9,7 @@ import (
 
 type createAccountRequest struct {
 	Owner    string `json:"owner" binding:"required"`
-	Currency string `json:"currency" binding:"required,oneof=USD EUR"`
+	Currency string `json:"currency" binding:"required"`
 }
 
 // POST /accounts
@@ -18,20 +17,19 @@ func (server *Server) createAccount(ctx *gin.Context) {
 	var req createAccountRequest
 	err := ctx.ShouldBindJSON(&req)
 
-	// If the request is invalid, return an error.
+	// If the request body is not a valid JSON or the JSON does not match the struct, return a 400 Bad Request.
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	// Create a new account in the database. ( balance is 0 by default )
 	arg := db.CreateAccountsParams{
 		Owner:    req.Owner,
 		Currency: req.Currency,
 		Balance:  0,
 	}
 
-	// Create the account in the database.
+	// Create a new account in the database.
 	account, err := server.store.CreateAccounts(ctx, arg)
 
 	if err != nil {
@@ -39,7 +37,6 @@ func (server *Server) createAccount(ctx *gin.Context) {
 		return
 	}
 
-	// Return the account to the user.
 	ctx.JSON(http.StatusOK, account)
 }
 
@@ -52,7 +49,7 @@ func (server *Server) getAccount(ctx *gin.Context) {
 	var req getAccountRequest
 	err := ctx.ShouldBindUri(&req)
 
-	// If the request is invalid, return an error.
+	// If the request body is not a valid JSON or the JSON does not match the struct, return a 400 Bad Request.
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
@@ -62,8 +59,7 @@ func (server *Server) getAccount(ctx *gin.Context) {
 	account, err := server.store.GetAccount(ctx, req.ID)
 
 	if err != nil {
-
-		// If the account is not found, return an error.
+		// If the account is not found, return a 404 Not Found.
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return
@@ -73,13 +69,12 @@ func (server *Server) getAccount(ctx *gin.Context) {
 		return
 	}
 
-	// Return the account to the user.
 	ctx.JSON(http.StatusOK, account)
 }
 
 type listAccountsRequest struct {
-	PageId   int32 `form:"page_id" binding:"required,min=1"`
-	PageSize int32 `form:"page_size" binding:"required,min=1,max=10"`
+	PageID   int32 `form:"page_id" binding:"required,min=1"`
+	PageSize int32 `form:"page_size" binding:"required,min=1,max=100"`
 }
 
 // GET /accounts
@@ -87,18 +82,18 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 	var req listAccountsRequest
 	err := ctx.ShouldBindQuery(&req)
 
-	// If the request is invalid, return an error.
+	// If the request body is not a valid JSON or the JSON does not match the struct, return a 400 Bad Request.
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	// Get the account from the database.
 	arg := db.GetAccountsParams{
 		Limit:  req.PageSize,
-		Offset: (req.PageId - 1) * req.PageSize,
+		Offset: (req.PageID - 1) * req.PageSize,
 	}
 
+	// Get the accounts from the database.
 	accounts, err := server.store.GetAccounts(ctx, arg)
 
 	if err != nil {
@@ -106,17 +101,5 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 		return
 	}
 
-	// Return the account to the user.
 	ctx.JSON(http.StatusOK, accounts)
-=======
-import "github.com/gin-gonic/gin"
-
-type createAccountRequest struct {
-	Owner    string `json:"owner" binding:"required"`
-	Currency string `json:"currency" binding:"required"`
-}
-
-func (server *Server) createAccount(ctx *gin.Context) {
-
->>>>>>> origin/main
 }

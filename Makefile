@@ -1,4 +1,4 @@
-POSTGRES_URL=postgresql://root@neidn.com:5432/simple_bank?sslmode=disable&password=secret
+POSTGRES_URL=postgresql://root@localhost:5432/simple_bank?sslmode=disable&password=secret
 
 migrateup:
 	migrate -path db/migration -database "$(POSTGRES_URL)" -verbose up

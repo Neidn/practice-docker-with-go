@@ -9,7 +9,7 @@ import (
 
 type createAccountRequest struct {
 	Owner    string `json:"owner" binding:"required"`
-	Currency string `json:"currency" binding:"required"`
+	Currency string `json:"currency" binding:"required,oneof=USD EUR GBP"`
 }
 
 // POST /accounts

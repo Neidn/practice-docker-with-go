@@ -33,11 +33,15 @@ func NewServer(store db.Store) *Server {
 	}
 
 	// Set up the routing of the server.
+	// START //
+	router.POST("/users", server.createUser)
+
 	router.POST("/accounts", server.createAccount)
 	router.GET("/accounts/:id", server.getAccount)
 	router.GET("/accounts", server.listAccounts)
 
 	router.POST("/transfers", server.createTransfer)
+	// END //
 
 	server.router = router
 	return server

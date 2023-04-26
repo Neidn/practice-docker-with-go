@@ -1,6 +1,7 @@
 package util
 
 import (
+	"database/sql"
 	"fmt"
 	"math/rand"
 	"time"
@@ -40,6 +41,19 @@ func RandomMoney() int64 {
 func RandomCurrency() string {
 	currencies := []string{USD, EUR, CAD}
 	return currencies[rand.Intn(len(currencies))]
+}
+
+// RandomTime returns a random time
+func RandomTime() time.Time {
+	return time.Now().Add(time.Duration(rand.Intn(1000)) * time.Hour)
+}
+
+// RandomSQLint64 returns a random sql.NullInt64
+func RandomSQLint64() sql.NullInt64 {
+	return sql.NullInt64{
+		Int64: RandomInt(1, 1000),
+		Valid: true,
+	}
 }
 
 // RandomEmail returns a random email

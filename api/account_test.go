@@ -49,7 +49,7 @@ func requireBodyMatchAccounts(t *testing.T, body *bytes.Buffer, accounts []db.Ac
 }
 
 func TestServer_GetAccountAPI(t *testing.T) {
-	user := randomUser(t)
+	user, _ := randomUser(t)
 	account := randomAccount(user.Username)
 
 	// testCases is a slice of test cases for the unit tests.
@@ -146,7 +146,7 @@ func TestServer_GetAccountAPI(t *testing.T) {
 }
 
 func TestServer_CreateAccountAPI(t *testing.T) {
-	user := randomUser(t)
+	user, _ := randomUser(t)
 	account := randomAccount(user.Username)
 
 	testCases := []struct {
@@ -257,7 +257,7 @@ func TestServer_CreateAccountAPI(t *testing.T) {
 }
 
 func TestServer_ListAccountsAPI(t *testing.T) {
-	user := randomUser(t)
+	user, _ := randomUser(t)
 	// random accounts
 	n := 10
 	accounts := make([]db.Accounts, n)

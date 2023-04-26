@@ -53,7 +53,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 		// Check if the error is pq.Error.
 		if pqErr, ok := err.(*pq.Error); ok {
 			switch pqErr.Code.Name() {
-			case "unique_violation":
+			case "unique_violation": // error code 23505
 				ctx.JSON(http.StatusForbidden, errorResponse(err))
 				return
 			}

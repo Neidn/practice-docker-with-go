@@ -37,7 +37,8 @@ func (server *Server) createAccount(ctx *gin.Context) {
 		// If the account is not found, return a 404 Not Found.
 		if pqErr, ok := err.(*pq.Error); ok {
 			switch pqErr.Code.Name() {
-			case "foreign_key_violation", "unique_violation": // error code 23503, 23505
+			// error code 23503, 23505
+			case "foreign_key_violation", "unique_violation":
 				ctx.JSON(http.StatusForbidden, errorResponse(err))
 				return
 			}

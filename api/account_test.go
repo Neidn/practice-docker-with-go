@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
+	"github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 	"io"
 	"net/http"
@@ -213,6 +214,38 @@ func TestServer_CreateAccountAPI(t *testing.T) {
 			},
 			checkResponse: func(recorder *httptest.ResponseRecorder) {
 				require.Equalf(t, http.StatusBadRequest, recorder.Code, "response code should be %d", http.StatusBadRequest)
+			},
+		},
+		{
+			name: "ViolateUniqueConstraint",
+			body: gin.H{
+				"owner":    user.Username,
+				"currency": account.Currency,
+			},
+			buildStubs: func(store *mockDB.MockStore) {
+				store.EXPECT().
+					CreateAccounts(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(db.Accounts{}, &pq.Error{Code: "23505"})
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equalf(t, http.StatusForbidden, recorder.Code, "response code should be %d", http.StatusForbidden)
+			},
+		},
+		{
+			name: "ViolationOfForeignKey",
+			body: gin.H{
+				"owner":    user.Username,
+				"currency": account.Currency,
+			},
+			buildStubs: func(store *mockDB.MockStore) {
+				store.EXPECT().
+					CreateAccounts(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(db.Accounts{}, &pq.Error{Code: "23503"})
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equalf(t, http.StatusForbidden, recorder.Code, "response code should be %d", http.StatusForbidden)
 			},
 		},
 	}

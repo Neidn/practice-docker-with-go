@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"io"
@@ -16,10 +17,10 @@ import (
 	"testing"
 )
 
-func randomAccount() db.Accounts {
+func randomAccount(owner string) db.Accounts {
 	return db.Accounts{
 		ID:       util.RandomInt(1, 1000),
-		Owner:    util.RandomOwner(),
+		Owner:    owner,
 		Balance:  util.RandomMoney(),
 		Currency: util.RandomCurrency(),
 	}
@@ -48,7 +49,8 @@ func requireBodyMatchAccounts(t *testing.T, body *bytes.Buffer, accounts []db.Ac
 }
 
 func TestServer_GetAccountAPI(t *testing.T) {
-	account := randomAccount()
+	user := randomUser(t)
+	account := randomAccount(user.Username)
 
 	// testCases is a slice of test cases for the unit tests.
 	testCases := []struct {
@@ -144,15 +146,123 @@ func TestServer_GetAccountAPI(t *testing.T) {
 }
 
 func TestServer_CreateAccountAPI(t *testing.T) {
+	user := randomUser(t)
+	account := randomAccount(user.Username)
 
+	testCases := []struct {
+		name          string
+		body          gin.H
+		buildStubs    func(store *mockDB.MockStore)
+		checkResponse func(recorder *httptest.ResponseRecorder)
+	}{
+		{
+			name: "OK",
+			body: gin.H{
+				"owner":    user.Username,
+				"currency": account.Currency,
+			},
+			buildStubs: func(store *mockDB.MockStore) {
+				arg := db.CreateAccountsParams{
+					Owner:    user.Username,
+					Currency: account.Currency,
+					Balance:  0,
+				}
+
+				store.EXPECT().
+					CreateAccounts(gomock.Any(), gomock.Eq(arg)).
+					Times(1).
+					Return(account, nil)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equalf(t, http.StatusOK, recorder.Code, "response code should be %d", http.StatusOK)
+				requireBodyMatchAccount(t, recorder.Body, account)
+			},
+		},
+		{
+			name: "InternalError",
+			body: gin.H{
+				"owner":    user.Username,
+				"currency": account.Currency,
+			},
+			buildStubs: func(store *mockDB.MockStore) {
+				arg := db.CreateAccountsParams{
+					Owner:    user.Username,
+					Currency: account.Currency,
+					Balance:  0,
+				}
+
+				store.EXPECT().
+					CreateAccounts(gomock.Any(), gomock.Eq(arg)).
+					Times(1).
+					Return(db.Accounts{}, sql.ErrConnDone)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equalf(t, http.StatusInternalServerError, recorder.Code, "response code should be %d", http.StatusInternalServerError)
+			},
+		},
+		{
+			name: "InvalidCurrency",
+			body: gin.H{
+				"owner":    user.Username,
+				"currency": "invalid",
+			},
+			buildStubs: func(store *mockDB.MockStore) {
+				store.EXPECT().
+					CreateAccounts(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equalf(t, http.StatusBadRequest, recorder.Code, "response code should be %d", http.StatusBadRequest)
+			},
+		},
+	}
+
+	// loop each test case.
+	for i := range testCases {
+		tc := testCases[i]
+
+		// run each test case.
+		t.Run(tc.name, func(t *testing.T) {
+			// create a mock controller
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			// create mock store
+			store := mockDB.NewMockStore(ctrl)
+
+			// build stubs
+			tc.buildStubs(store)
+
+			// start test server and send request
+			server := NewServer(store)
+			recorder := httptest.NewRecorder()
+
+			url := fmt.Sprintf("/accounts")
+			body, err := json.Marshal(tc.body)
+			require.NoErrorf(t, err, "cannot marshal account: %v", err)
+
+			// create request
+			request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(body))
+			require.NoErrorf(t, err, "cannot create request: %v", err)
+
+			// set request header
+			request.Header.Set("Content-Type", "application/json")
+
+			server.router.ServeHTTP(recorder, request)
+
+			// check response
+			tc.checkResponse(recorder)
+		})
+	}
 }
 
 func TestServer_ListAccountsAPI(t *testing.T) {
+	user := randomUser(t)
 	// random accounts
 	n := 10
 	accounts := make([]db.Accounts, n)
 	for i := 0; i < n; i++ {
-		accounts[i] = randomAccount()
+		accounts[i] = randomAccount(user.Username)
 	}
 
 	testCases := []struct {

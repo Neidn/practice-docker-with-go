@@ -16,38 +16,45 @@ var (
 type Payload struct {
 	ID        uuid.UUID `json:"id"`
 	Username  string    `json:"username"`
+	Issuer    string    `json:"issuer"`
+	Subject   string    `json:"subject"`
+	Audience  []string  `json:"audience"`
+	NotBefore time.Time `json:"not_before"`
 	IssuedAt  time.Time `json:"issued_at"`
 	ExpiredAt time.Time `json:"expired_at"`
 }
 
 func (p Payload) GetExpirationTime() (*jwt.NumericDate, error) {
-	//TODO implement me
-	panic("implement me")
+	if time.Now().After(p.ExpiredAt) {
+		return nil, ErrExpiredToken
+	}
+	return jwt.NewNumericDate(p.ExpiredAt), nil
 }
 
 func (p Payload) GetIssuedAt() (*jwt.NumericDate, error) {
-	//TODO implement me
-	panic("implement me")
+	if time.Now().Before(p.IssuedAt) {
+		return nil, ErrInvalidToken
+	}
+	return jwt.NewNumericDate(p.IssuedAt), nil
 }
 
 func (p Payload) GetNotBefore() (*jwt.NumericDate, error) {
-	//TODO implement me
-	panic("implement me")
+	if time.Now().Before(p.NotBefore) {
+		return nil, ErrInvalidToken
+	}
+	return jwt.NewNumericDate(p.NotBefore), nil
 }
 
 func (p Payload) GetIssuer() (string, error) {
-	//TODO implement me
-	panic("implement me")
+	return p.Issuer, nil
 }
 
 func (p Payload) GetSubject() (string, error) {
-	//TODO implement me
-	panic("implement me")
+	return p.Subject, nil
 }
 
 func (p Payload) GetAudience() (jwt.ClaimStrings, error) {
-	//TODO implement me
-	panic("implement me")
+	return p.Audience, nil
 }
 
 // NewPayload creates a new payload for a specific username and duration.

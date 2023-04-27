@@ -41,7 +41,7 @@ func (maker *JWTMaker) VerifyToken(token string) (*Payload, error) {
 		_, ok := token.Method.(*jwt.SigningMethodHMAC)
 		if !ok {
 
-			return nil, fmt.Errorf("invalid token: %w", ErrInvalidToken)
+			return nil, ErrInvalidToken
 		}
 		return []byte(maker.secretKey), nil
 	}

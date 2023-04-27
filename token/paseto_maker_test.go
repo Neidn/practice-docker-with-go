@@ -30,3 +30,18 @@ func TestPasetoMaker_CreateToken(t *testing.T) {
 	require.WithinDurationf(t, issueAt, payload.IssuedAt, time.Second, "issuedAt should be the same")
 	require.WithinDurationf(t, expireAt, payload.ExpiredAt, time.Second, "expiredAt should be the same")
 }
+
+func TestPasetoMaker_VerifyToken_ExpiredPasetoToken(t *testing.T) {
+	maker, err := NewPasetoMaker(util.RandomString(32))
+	require.NoErrorf(t, err, "cannot create paseto maker")
+
+	// create token with -1 minute duration
+	token, err := maker.CreateToken(util.RandomOwner(), -time.Minute)
+	require.NoErrorf(t, err, "cannot create token")
+	require.NotEmptyf(t, token, "token should not be empty")
+
+	payload, err := maker.VerifyToken(token)
+	require.Errorf(t, err, "")
+	require.EqualErrorf(t, err, ErrExpiredToken.Error(), "token should be expired")
+	require.Nilf(t, payload, "payload should be nil")
+}

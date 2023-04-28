@@ -5,31 +5,44 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	db "practice-docker/db/sqlc"
+	"practice-docker/token"
+	"practice-docker/util"
 )
 
 type Server struct {
-	store  db.Store
-	router *gin.Engine
+	config     util.Config
+	store      db.Store
+	tokenMaker token.Maker
+	router     *gin.Engine
 }
 
 // NewServer creates a new HTTP server and setup routing.
-func NewServer(store db.Store) *Server {
-	server := &Server{store: store}
+func NewServer(config util.Config, store db.Store) (*Server, error) {
+	tokenMaker, err := token.NewPasetoMaker(config.TokenSymmetricKey)
+	if err != nil {
+		return nil, err
+	}
+
+	server := &Server{
+		config:     config,
+		store:      store,
+		tokenMaker: tokenMaker,
+	}
 	router := gin.Default()
 
 	// Register the custom validator.
 	if validate, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		err := validate.RegisterValidation("currency", validCurrency)
 		if err != nil {
-			return nil
+			return nil, err
 		}
 	}
 
 	// Set up the mode of the server.
 	gin.SetMode(gin.DebugMode)
-	err := router.SetTrustedProxies([]string{"127.0.0.1"})
+	err = router.SetTrustedProxies([]string{"127.0.0.1"})
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	// Set up the routing of the server.
@@ -44,7 +57,7 @@ func NewServer(store db.Store) *Server {
 	// END //
 
 	server.router = router
-	return server
+	return server, nil
 }
 
 // Start runs the HTTP server on a specific address.

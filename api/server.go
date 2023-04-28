@@ -16,6 +16,31 @@ type Server struct {
 	router     *gin.Engine
 }
 
+// Set up the routing of the server.
+func (server *Server) setupRouter() {
+	router := gin.Default()
+
+	// Set up the mode of the server.
+	gin.SetMode(gin.DebugMode)
+	err := router.SetTrustedProxies([]string{
+		"127.0.0.1",
+	})
+	if err != nil {
+		return
+	}
+
+	router.POST("/users", server.createUser)
+	router.POST("/users/login", server.loginUser)
+
+	router.POST("/accounts", server.createAccount)
+	router.GET("/accounts/:id", server.getAccount)
+	router.GET("/accounts", server.listAccounts)
+
+	router.POST("/transfers", server.createTransfer)
+
+	server.router = router
+}
+
 // NewServer creates a new HTTP server and setup routing.
 func NewServer(config util.Config, store db.Store) (*Server, error) {
 	tokenMaker, err := token.NewPasetoMaker(config.TokenSymmetricKey)
@@ -28,8 +53,6 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 		store:      store,
 		tokenMaker: tokenMaker,
 	}
-	router := gin.Default()
-
 	// Register the custom validator.
 	if validate, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		err := validate.RegisterValidation("currency", validCurrency)
@@ -38,25 +61,11 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 		}
 	}
 
-	// Set up the mode of the server.
-	gin.SetMode(gin.DebugMode)
-	err = router.SetTrustedProxies([]string{"127.0.0.1"})
-	if err != nil {
-		return nil, err
-	}
-
 	// Set up the routing of the server.
 	// START //
-	router.POST("/users", server.createUser)
-
-	router.POST("/accounts", server.createAccount)
-	router.GET("/accounts/:id", server.getAccount)
-	router.GET("/accounts", server.listAccounts)
-
-	router.POST("/transfers", server.createTransfer)
+	server.setupRouter()
 	// END //
 
-	server.router = router
 	return server, nil
 }
 

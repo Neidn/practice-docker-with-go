@@ -23,24 +23,25 @@ func getFirstAccount(t *testing.T) Accounts {
 	return accounts[0]
 }
 
-func createRandomEntry(t *testing.T, id int64) Entries {
+func createRandomEntry(t *testing.T, account Accounts) Entries {
 
-	// Create random entry
-	arg2 := CreateEntryParams{
-		AccountID: sql.NullInt64{
-			Int64: id,
-			Valid: true,
-		},
-		Amount: util.RandomMoney(),
+	id := sql.NullInt64{
+		Int64: account.ID,
+		Valid: true,
 	}
 
-	entry, err := testQueries.CreateEntry(context.Background(), arg2)
+	arg := CreateEntryParams{
+		AccountID: id,
+		Amount:    util.RandomMoney(),
+	}
 
+	entry, err := testQueries.CreateEntry(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, entry)
 
-	require.Equal(t, arg2.AccountID.Int64, entry.AccountID.Int64)
-	require.Equal(t, arg2.Amount, entry.Amount)
+	require.Equal(t, arg.AccountID, entry.AccountID)
+	require.Equal(t, arg.Amount, entry.Amount)
+
 	require.NotZero(t, entry.ID)
 	require.NotZero(t, entry.CreatedAt)
 
@@ -48,15 +49,14 @@ func createRandomEntry(t *testing.T, id int64) Entries {
 }
 
 func TestQueries_CreateEntry(t *testing.T) {
-	id := getFirstAccount(t).ID
-
-	createRandomEntry(t, id)
+	account := createRandomAccount(t)
+	createRandomEntry(t, account)
 }
 
 func TestQueries_GetEntry(t *testing.T) {
-	id := getFirstAccount(t).ID
+	account := createRandomAccount(t)
 
-	entry1 := createRandomEntry(t, id)
+	entry1 := createRandomEntry(t, account)
 	entry2, err := testQueries.GetEntry(context.Background(), entry1.ID)
 
 	require.NoError(t, err)
@@ -69,15 +69,15 @@ func TestQueries_GetEntry(t *testing.T) {
 }
 
 func TestQueries_GetEntries(t *testing.T) {
-	id := getFirstAccount(t).ID
+	account := createRandomAccount(t)
 
 	for i := 0; i < 10; i++ {
-		createRandomEntry(t, id)
+		createRandomEntry(t, account)
 	}
 
 	arg := ListEntriesParams{
 		AccountID: sql.NullInt64{
-			Int64: id,
+			Int64: account.ID,
 			Valid: true,
 		},
 		Limit:  5,

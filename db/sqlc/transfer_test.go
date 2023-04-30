@@ -43,7 +43,16 @@ func getToAccountID(t *testing.T) sql.NullInt64 {
 	}
 }
 
-func createRandomTransfer(t *testing.T, fromID sql.NullInt64, toID sql.NullInt64) Transfers {
+func createRandomTransfer(t *testing.T, fromAccount Accounts, toAccount Accounts) Transfers {
+	fromID := sql.NullInt64{
+		Int64: fromAccount.ID,
+		Valid: true,
+	}
+	toID := sql.NullInt64{
+		Int64: toAccount.ID,
+		Valid: true,
+	}
+
 	arg := CreateTransferParams{
 		FromAccountID: fromID,
 		ToAccountID:   toID,
@@ -65,17 +74,17 @@ func createRandomTransfer(t *testing.T, fromID sql.NullInt64, toID sql.NullInt64
 }
 
 func TestQueries_CreateTransfer(t *testing.T) {
-	fromID := getFromAccountID(t)
-	toID := getToAccountID(t)
+	fromAccount := createRandomAccount(t)
+	toAccount := createRandomAccount(t)
 
-	createRandomTransfer(t, fromID, toID)
+	createRandomTransfer(t, fromAccount, toAccount)
 }
 
 func TestQueries_GetTransfer(t *testing.T) {
-	fromID := getFromAccountID(t)
-	toID := getToAccountID(t)
+	fromAccount := createRandomAccount(t)
+	toAccount := createRandomAccount(t)
 
-	transfer := createRandomTransfer(t, fromID, toID)
+	transfer := createRandomTransfer(t, fromAccount, toAccount)
 
 	transfer2, err := testQueries.GetTransfer(context.Background(), transfer.ID)
 
@@ -90,11 +99,21 @@ func TestQueries_GetTransfer(t *testing.T) {
 }
 
 func TestQueries_ListTransfers(t *testing.T) {
-	fromID := getFromAccountID(t)
-	toID := getToAccountID(t)
+	fromAccount := createRandomAccount(t)
+	toAccount := createRandomAccount(t)
 
 	for i := 0; i < 10; i++ {
-		createRandomTransfer(t, fromID, toID)
+		createRandomTransfer(t, fromAccount, toAccount)
+	}
+
+	fromID := sql.NullInt64{
+		Int64: fromAccount.ID,
+		Valid: true,
+	}
+
+	toID := sql.NullInt64{
+		Int64: toAccount.ID,
+		Valid: true,
 	}
 
 	arg := ListTransfersParams{

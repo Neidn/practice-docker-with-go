@@ -12,6 +12,7 @@ import (
 	"net/http/httptest"
 	mockDB "practice-docker/db/mock"
 	db "practice-docker/db/sqlc"
+	"practice-docker/token"
 	"practice-docker/util"
 	"testing"
 )
@@ -34,6 +35,7 @@ func TestServer_createTransferAPI(t *testing.T) {
 	testCases := []struct {
 		name          string
 		body          gin.H
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStubs    func(store *mockDB.MockStore)
 		checkResponse func(recorder *httptest.ResponseRecorder)
 	}{

@@ -6,10 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	db "practice-docker/db/sqlc"
+	"practice-docker/token"
 )
 
 // validAccount checks if the account exists and is owned by the given user.
-func (server *Server) validAccount(ctx *gin.Context, accountID int64, currency string) bool {
+func (server *Server) validAccount(ctx *gin.Context, accountID int64, currency string) (db.Accounts, bool) {
 
 	// check if the account exists
 	account, err := server.store.GetAccount(ctx, accountID)
@@ -17,21 +18,21 @@ func (server *Server) validAccount(ctx *gin.Context, accountID int64, currency s
 		// check if the error is not ErrAccountNotFound
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return false
+			return account, false
 		}
 
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return false
+		return account, false
 	}
 
 	// check if the account is in the correct currency
 	if account.Currency != currency {
 		err := fmt.Errorf("account [%d] currency mismatch: %s vs %s", accountID, account.Currency, currency)
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return false
+		return account, false
 	}
 
-	return true
+	return account, true
 }
 
 type transferRequest struct {
@@ -51,12 +52,21 @@ func (server *Server) createTransfer(ctx *gin.Context) {
 	}
 
 	// check if the from account exists and is owned by the user
-	if !server.validAccount(ctx, req.FromAccountID, req.Currency) {
+	fromAccount, valid := server.validAccount(ctx, req.FromAccountID, req.Currency)
+	if !valid {
+		return
+	}
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	if fromAccount.Owner != authPayload.Username {
+		err := fmt.Errorf("from account doesn't belong to the authenticated user")
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
 		return
 	}
 
 	// check if the to account exists and is owned by the user
-	if !server.validAccount(ctx, req.ToAccountID, req.Currency) {
+	_, valid = server.validAccount(ctx, req.ToAccountID, req.Currency)
+	if !valid {
 		return
 	}
 

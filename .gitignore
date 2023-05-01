@@ -31,3 +31,7 @@ http/
 # Go workspace file
 go.work
 
+# node.js
+node_modules
+package-lock.json
+

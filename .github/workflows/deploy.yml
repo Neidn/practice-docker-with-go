@@ -9,7 +9,6 @@ on:
 env:
   AWS_REGION: "ap-northeast-2"
   ECR_REPOSITORY: "simplebank"
-  ROLE_ARN: "arn:aws:iam::123456789012:role/github-ci"
   ECR_URL: "160614875958.dkr.ecr.ap-northeast-2.amazonaws.com/simplebank"
 
 
@@ -32,5 +31,4 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: ${{ env.ROLE_ARN }}
 

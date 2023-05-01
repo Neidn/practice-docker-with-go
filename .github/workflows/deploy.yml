@@ -8,9 +8,10 @@ on:
 
 env:
   AWS_REGION: "ap-northeast-2"
-  ROLE_ARN: "arn:aws:iam::123456789012:role/github-ci"
   ECR_REPOSITORY: "simplebank"
+  ROLE_ARN: "arn:aws:iam::123456789012:role/github-ci"
   ECR_URL: "160614875958.dkr.ecr.ap-northeast-2.amazonaws.com/simplebank"
+
 
 jobs:
   build:
@@ -22,12 +23,14 @@ jobs:
       contents: read    # This is required for actions/checkout
 
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v3
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2 # More information on this action can be found below in the 'AWS Credentials' section
         with:
-          role-to-assume: ${{ env.ROLE_ARN }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-          role-session-name: "github-ci"
+          role-to-assume: ${{ env.ROLE_ARN }}
+

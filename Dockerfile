@@ -10,7 +10,7 @@ RUN curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.2/
 FROM alpine:3.17
 WORKDIR /app
 COPY --from=builder /app/main .
-COPY --from=builder /app/migrate ./migrate
+COPY --from=builder /app/migrate .
 COPY app.env .
 COPY start.sh .
 COPY db/migration ./migration

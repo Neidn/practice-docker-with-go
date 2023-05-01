@@ -2,12 +2,17 @@ version: "3.9"
 services:
   postgres:
     image: postgres:15-alpine
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=secret
       - POSTGRES_DB=simple_bank
     healthcheck:
       test: [ "CMD", "pg_isready", "-q", "-d", "simple_bank" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   api:
     build:
@@ -16,6 +21,8 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - DB_SOURSE=postgresql://root:secret@postgres:5432/simple_bank?sslmode=disable
+      - DB_SOURCE=postgresql://root:secret@postgres:5432/simple_bank?sslmode=disable
     depends_on:
       - postgres
+    entrypoint: [ "/app/start.sh" ]
+    command: [ "/app/main" ]

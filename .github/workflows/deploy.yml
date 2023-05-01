@@ -17,6 +17,10 @@ jobs:
     name: Build Image
     runs-on: ubuntu-latest
 
+    permissions:
+      id-token: write   # This is required for requesting the JWT
+      contents: read    # This is required for actions/checkout
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -26,3 +30,4 @@ jobs:
         with:
           role-to-assume: ${{ env.ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+          role-session-name: "github-ci"

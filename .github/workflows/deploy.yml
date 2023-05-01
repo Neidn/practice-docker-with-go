@@ -8,7 +8,7 @@ on:
 
 env:
   AWS_REGION: "ap-northeast-2"
-  ROLE_ARN: "arn:aws:iam::123456789012:role/my-github-actions-role"
+  ROLE_ARN: "arn:aws:iam::123456789012:role/github-ci"
   ECR_REPOSITORY: "simplebank"
   ECR_URL: "160614875958.dkr.ecr.ap-northeast-2.amazonaws.com/simplebank"
 

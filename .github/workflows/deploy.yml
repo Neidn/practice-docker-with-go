@@ -7,10 +7,9 @@ on:
     branches: [ "main" ]
 
 env:
-  ECR_REGISTRY: "160614875958.dkr.ecr.ap-northeast-2.amazonaws.com/simplebank"
   ECR_REPOSITORY: "simplebank"
   AWS_REGION: "ap-northeast-2"
-  ROLE_ARN: "arn:aws:iam::160614875958:user/github-ci"
+  SECRET_NAME: "simple_bank"
 
 
 jobs:
@@ -36,6 +35,10 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Load secrets and save to app.env
+        run: |
+          aws secretsmanager get-secret-value --secret-id ${{ env.SECRET_NAME }} --query SecretString --output text | jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' > app.env
 
       - name: Build, tag, and push docker image to Amazon ECR
         env:
